@@ -1,0 +1,463 @@
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nackabryggarna — Ljuflig Ölbrygg</title>
+<script src="chart.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap');
+:root{--bg:#0f0d08;--surface:#1c1810;--s2:#272010;--border:#3d3018;--gold:#d4922a;--gold2:#a06018;--cream:#f2e4c4;--muted:#7a6840;--green:#4caf50}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--cream);min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(15,13,8,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 32px;gap:2px}
+.nav-logo{margin-right:auto;padding:13px 0;display:flex;flex-direction:column;line-height:1;flex-shrink:0}
+.nav-logo-main{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:900;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.nav-logo-sub{font-size:.58rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+.nav-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:17px 13px;cursor:pointer;font-size:.8rem;font-family:inherit;letter-spacing:.04em;transition:all .2s;white-space:nowrap}
+.nav-btn:hover{color:var(--cream)}
+.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
+.nav-btn-add{color:var(--gold2)!important;border-left:1px solid var(--border);margin-left:4px;padding-left:16px}
+.nav-btn-add:hover{color:var(--gold)!important}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* HERO */
+.hero{position:relative;height:92vh;min-height:480px;max-height:780px;overflow:hidden}
+.hero-img{position:absolute;inset:0;background:url('bilder/bryggning.jpg') center/cover no-repeat}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,8,4,.88) 0%,rgba(10,8,4,.35) 100%)}
+.hero-body{position:absolute;bottom:0;left:0;padding:0 60px 90px;max-width:680px}
+.hero-eye{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+.hero-brand{font-family:'Playfair Display',serif;font-size:clamp(3.2rem,8vw,5.8rem);font-weight:900;line-height:.92;color:var(--cream);margin-bottom:18px}
+.hero-tag{font-size:1rem;color:rgba(242,228,196,.6);margin-bottom:36px;font-style:italic}
+.hero-cta{display:inline-block;background:var(--gold);color:#0f0d08;padding:15px 34px;border-radius:6px;font-weight:600;font-size:.88rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;transition:background .2s,transform .15s;border:none;font-family:inherit}
+.hero-cta:hover{background:#e0a030;transform:translateY(-2px)}
+
+/* STATS STRIP */
+.stats-strip{background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.stats-inner{display:flex;padding:0 32px;min-width:max-content}
+.stat{padding:18px 26px;border-right:1px solid var(--border);flex-shrink:0;text-align:center}
+.stat:last-child{border-right:none}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--gold);line-height:1}
+.stat-label{font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.stat-detail{font-size:.62rem;color:var(--muted);opacity:.55;margin-top:2px}
+
+/* LAYOUT */
+.wrap{max-width:1100px;margin:0 auto;padding:52px 40px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:26px}
+.sec-title{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:700;color:var(--cream)}
+.sec-meta{font-size:.76rem;color:var(--muted)}
+
+/* BREW CARDS */
+.brew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.brew-card{display:flex;border-radius:10px;overflow:hidden;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s}
+.brew-card:hover{transform:translateY(-3px);border-color:var(--gold2);box-shadow:0 10px 36px rgba(0,0,0,.55)}
+.card-accent{width:5px;flex-shrink:0}
+.card-body{padding:15px 17px;flex:1;min-width:0}
+.card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;gap:8px}
+.card-name{font-size:1rem;font-weight:600;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-num{font-size:.67rem;color:var(--muted);flex-shrink:0}
+.card-badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.badge{font-size:.67rem;padding:2px 8px;border-radius:4px;font-weight:500;white-space:nowrap}
+.b-style{background:rgba(212,146,42,.18);color:var(--gold)}
+.b-abv{background:rgba(76,175,80,.12);color:#82c882}
+.b-date{background:var(--s2);color:var(--muted)}
+.card-recipe{font-size:.71rem;color:var(--muted);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* PAGE HEADER (Brygder, Statistik) */
+.pg-header{position:relative;height:210px;overflow:hidden}
+.pg-header img{width:100%;height:100%;object-fit:cover;filter:brightness(.32) saturate(.65)}
+.pg-header-body{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 48px}
+.pg-header-title{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:var(--cream)}
+.pg-header-sub{font-size:.72rem;color:rgba(242,228,196,.38);letter-spacing:.2em;text-transform:uppercase;margin-top:7px}
+
+/* SEARCH / FILTER */
+.search-row{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.search-wrap{flex:1;position:relative}
+.search-wrap::before{content:'⌕';position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.1rem;pointer-events:none}
+#q{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--cream);padding:11px 14px 11px 38px;border-radius:8px;font-size:.87rem;font-family:inherit;outline:none;transition:border-color .2s}
+#q:focus{border-color:var(--gold)}
+#q::placeholder{color:var(--muted)}
+#sort{background:var(--surface);border:1px solid var(--border);color:var(--cream);padding:11px 14px;border-radius:8px;font-size:.81rem;font-family:inherit;outline:none;cursor:pointer;flex-shrink:0}
+#sort:focus{border-color:var(--gold)}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.chip{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap}
+.chip:hover{border-color:var(--gold2);color:var(--cream)}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#0f0d08;font-weight:600}
+
+/* BREW DETAIL */
+.brew-hero{position:relative;height:300px;overflow:hidden}
+.brew-hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.38) saturate(.6)}
+.brew-hero-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,13,8,.96) 0%,transparent 55%)}
+.brew-hero-body{position:absolute;bottom:0;left:0;right:0;padding:0 44px 36px}
+.bd-name{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3rem);font-weight:900;color:var(--cream);line-height:1}
+.bd-sub{font-size:.8rem;color:rgba(242,228,196,.48);margin-top:7px;letter-spacing:.05em}
+.bd-wrap{max-width:820px;margin:0 auto;padding:34px 40px 80px}
+.back-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;font-size:.82rem;padding:0;margin-bottom:22px;display:inline-flex;align-items:center;gap:5px;transition:color .2s}
+.back-btn:hover{color:var(--gold)}
+.bd-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:10px;margin:22px 0}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.stat-box .k{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.stat-box .v{font-size:1.1rem;font-weight:600;color:var(--cream)}
+.brew-block{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin:14px 0}
+.brew-block-lbl{font-size:.66rem;color:var(--gold);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;font-weight:600}
+.brew-block-txt{font-size:.84rem;color:var(--cream);line-height:1.8;white-space:pre-wrap}
+.bd-pnav{display:flex;justify-content:space-between;align-items:center;margin-top:34px;padding-top:22px;border-top:1px solid var(--border)}
+.pnav-btn{background:none;border:1px solid var(--border);color:var(--cream);padding:10px 20px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.81rem;transition:all .2s}
+.pnav-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+.pnav-btn:disabled{opacity:.22;cursor:default}
+.del-btn{background:none;border:1px solid rgba(224,80,80,.3);color:#e05050;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.75rem;transition:all .2s;margin-left:auto;margin-right:12px}
+.del-btn:hover{background:rgba(224,80,80,.1);border-color:#e05050}
+
+/* BREWER SPLIT */
+.brewer-split{display:grid;grid-template-columns:1fr 1fr;overflow:hidden;margin-top:60px}
+.split-img{position:relative;height:520px;overflow:hidden}
+.split-img img{width:100%;height:100%;object-fit:cover;filter:brightness(.58) saturate(.7)}
+.split-badge{position:absolute;bottom:0;left:0;right:0;padding:26px 32px;background:linear-gradient(to top,rgba(10,8,4,.92) 0%,transparent 100%)}
+.bname{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--cream)}
+.brole{font-size:.7rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-top:3px}
+.split-text{background:var(--surface);padding:60px 52px;display:flex;flex-direction:column;justify-content:center}
+.split-text h2{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:var(--cream);line-height:1.1;margin-bottom:22px}
+.split-text h2 em{color:var(--gold);font-style:italic}
+.split-text p{color:rgba(242,228,196,.62);line-height:1.82;font-size:.88rem;margin-bottom:13px}
+.fact-row{display:flex;gap:24px;margin-top:28px;padding-top:24px;border-top:1px solid var(--border)}
+.fact .n{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:var(--gold)}
+.fact .l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+/* PHOTO BANNER */
+.photo-banner{position:relative;height:320px;overflow:hidden}
+.photo-banner img{width:100%;height:100%;object-fit:cover;filter:brightness(.28) saturate(.5)}
+.photo-banner-body{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px}
+.pb-quote{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2.4rem);font-weight:700;font-style:italic;color:var(--cream);line-height:1.25}
+.pb-sub{font-size:.75rem;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-top:14px}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.chart-card h3{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--gold);margin-bottom:16px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.toplist{list-style:none}
+.toplist li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+.toplist li:last-child{border-bottom:none}
+.tl-rank{width:20px;height:20px;border-radius:50%;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:.66rem;color:var(--muted);flex-shrink:0}
+.tl-body{flex:1;min-width:0}
+.tl-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.tl-name{font-size:.8rem;color:var(--cream)}
+.tl-cnt{font-size:.7rem;color:var(--muted)}
+.tl-bar{height:3px;background:var(--s2);border-radius:2px}
+.tl-fill{height:100%;background:var(--gold);border-radius:2px}
+ul.records-list{list-style:none}
+.records-list li{padding:11px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.records-list li:last-child{border-bottom:none}
+.rec-key{color:var(--muted);font-size:.7rem;margin-bottom:2px}
+
+/* FORM */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;max-width:760px;margin:0 auto}
+.form-card h2{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--cream);margin-bottom:8px}
+.form-card>p{color:var(--muted);font-size:.84rem;margin-bottom:28px;line-height:1.6}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g{display:flex;flex-direction:column;gap:6px}
+.g.full{grid-column:1/-1}
+.g label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:500}
+.g input,.g select,.g textarea{background:var(--s2);border:1px solid var(--border);color:var(--cream);padding:10px 12px;border-radius:8px;font-size:.87rem;font-family:inherit;outline:none;transition:border-color .2s}
+.g input:focus,.g select:focus,.g textarea:focus{border-color:var(--gold)}
+.g textarea{min-height:88px;resize:vertical;line-height:1.6}
+#srm-prev{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle;margin-left:4px;border:1px solid var(--border)}
+.btn{background:var(--gold);color:#0f0d08;border:none;padding:13px 32px;border-radius:8px;font-size:.9rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s;margin-top:10px}
+.btn:hover{background:#e0a030}
+
+/* OM OSS */
+.om-hero{position:relative;height:260px;overflow:hidden;border-radius:12px;margin-bottom:44px}
+.om-hero img{width:100%;height:100%;object-fit:cover;filter:brightness(.38) saturate(.6)}
+.om-hero-text{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:30px}
+.om-title{font-family:'Playfair Display',serif;font-size:2.1rem;font-weight:900;color:var(--cream)}
+.om-sub{font-size:.72rem;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-top:6px}
+.om-sec{margin-bottom:46px}
+.om-sec h2{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--cream);margin-bottom:15px}
+.story{color:rgba(242,228,196,.63);line-height:1.9;font-size:.9rem}
+.photo-duo{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:42px}
+.photo-duo img{width:100%;height:240px;object-fit:cover;border-radius:10px;filter:brightness(.72) saturate(.7)}
+.brewers{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.brewer{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px}
+.brewer-icon{font-size:1.8rem;margin-bottom:11px}
+.brewer-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);margin-bottom:11px;display:block}
+.brewer h3{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--cream);margin-bottom:4px}
+.role{font-size:.68rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.brewer p{font-size:.8rem;color:var(--muted);line-height:1.68}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:17px}
+.step .icon{font-size:1.5rem;margin-bottom:7px}
+.step .num{font-size:.62rem;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.step h4{font-size:.86rem;color:var(--cream);margin-bottom:5px}
+.step p{font-size:.74rem;color:var(--muted);line-height:1.5}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .ico{font-size:2.8rem;margin-bottom:12px}
+.empty p{font-size:.88rem;line-height:1.7}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .brewer-split{grid-template-columns:1fr}
+  .split-img{height:300px}
+  .split-text{padding:36px 28px}
+}
+@media(max-width:700px){
+  nav{padding:0 14px;gap:0}
+  .nav-btn{padding:15px 9px;font-size:.73rem}
+  .nav-logo-main{font-size:.95rem}
+  .hero-body{padding:0 24px 52px}
+  .wrap{padding:36px 18px}
+  .bd-wrap{padding:22px 18px 60px}
+  .fg{grid-template-columns:1fr}
+  .photo-duo{grid-template-columns:1fr}
+  .search-row{flex-direction:column;align-items:stretch}
+  .pg-header{height:155px}
+  .pg-header-body{padding:0 20px}
+  .pg-header-title{font-size:1.7rem}
+  .stats-inner{padding:0 14px}
+}
+</style>
+</head>
+<body>
+
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span class="nav-logo-main">Nackabryggarna</span>
+    <span class="nav-logo-sub">Ljuflig Ölbrygg</span>
+  </div>
+  <button class="nav-btn active" data-page="hem">Hem</button>
+  <button class="nav-btn" data-page="brygder">Brygder</button>
+  <button class="nav-btn" data-page="statistik">Statistik</button>
+  <button class="nav-btn nav-btn-add" data-page="ny">+ Ny brygd</button>
+  <button class="nav-btn" data-page="om">Om oss</button>
+</nav>
+
+<!-- HEM -->
+<div id="page-hem" class="page active">
+  <div class="hero">
+    <div class="hero-img"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-body">
+      <div class="hero-eye">Nackabryggarna presenterar</div>
+      <div class="hero-brand">Ljuflig<br>Ölbrygg</div>
+      <div class="hero-tag">Hantverksöl från Nacka — sedan 2019</div>
+      <button id="hero-cta" class="hero-cta">Se alla brygder →</button>
+    </div>
+  </div>
+  <div class="stats-strip"><div class="stats-inner" id="stats-inner"></div></div>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-title">Senaste brygder</div>
+      <div class="sec-meta" id="home-meta"></div>
+    </div>
+    <div class="brew-grid" id="home-grid"></div>
+  </div>
+  <div class="brewer-split">
+    <div class="split-img">
+      <img src="bilder/henrik.jpg" alt="Henrik brygger">
+      <div class="split-badge">
+        <div class="bname">Henrik Widström</div>
+        <div class="brole">Expert på promille &amp; procenten</div>
+      </div>
+    </div>
+    <div class="split-text">
+      <h2>Passion på<br><em>riktigt.</em></h2>
+      <p>Det börjar alltid med en idé — kanske en ny humlesort, kanske en mältkombination vi aldrig provat. Sedan blir det bryggdag, och det är i köket (eller på altanen) som magin händer.</p>
+      <p>Varje brygd är ett experiment. Ibland slår det perfekt, ibland lär man sig något nytt. Det är precis det som gör det värt det.</p>
+      <p>Vi är <strong style="color:var(--gold)">Nackabryggarna</strong> — Lennart, Henrik och Magnus — och vi har bryggat ihop sedan 2019.</p>
+      <div class="fact-row" id="split-facts"></div>
+    </div>
+  </div>
+  <div class="photo-banner">
+    <img src="bilder/flaskor.jpg" alt="Ljuflig Ölbrygg på flaska">
+    <div class="photo-banner-body">
+      <div class="pb-quote">"Ljuflig Ölbrygg<br>Af Slaget: Hantverksöl"</div>
+      <div class="pb-sub">Varje batch — ett nytt äventyr</div>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:50px">
+    <div class="charts-grid">
+      <div class="chart-card"><h3>Stilfördelning</h3><canvas id="ch-styles-home"></canvas></div>
+      <div class="chart-card"><h3>Favorithumlar</h3><ul class="toplist" id="hops-home"></ul></div>
+      <div class="chart-card"><h3>Brygder per år</h3><canvas id="ch-years-home"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- BRYGDER -->
+<div id="page-brygder" class="page">
+  <div class="pg-header">
+    <img src="bilder/segelbat.jpg" alt="Nackabryggarna">
+    <div class="pg-header-body">
+      <div class="pg-header-title">Alla brygder</div>
+      <div class="pg-header-sub">56 satser · IPA, Stout, Saison &amp; mer</div>
+    </div>
+  </div>
+  <div class="wrap" style="padding-top:34px">
+    <div class="search-row">
+      <div class="search-wrap">
+        <input type="text" id="q" placeholder="Sök namn, humle, malt…" autocomplete="off">
+      </div>
+      <select id="sort">
+        <option value="new">Senaste först</option>
+        <option value="old">Äldsta först</option>
+        <option value="abv-hi">Högst ABV</option>
+        <option value="abv-lo">Lägst ABV</option>
+        <option value="az">A–Ö</option>
+      </select>
+    </div>
+    <div class="chips" id="style-chips"></div>
+    <div class="sec-meta" id="brygder-meta" style="margin-bottom:16px"></div>
+    <div class="brew-grid" id="brygder-grid"></div>
+    <div class="empty" id="brygder-empty" style="display:none">
+      <div class="ico">🍺</div><p>Inga brygder matchar sökningen.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BREW DETAIL -->
+<div id="page-brew" class="page">
+  <div class="brew-hero">
+    <img src="bilder/flaskor.jpg" alt="Brygd">
+    <div class="brew-hero-ov"></div>
+    <div class="brew-hero-body">
+      <div id="bd-name" class="bd-name"></div>
+      <div id="bd-sub" class="bd-sub"></div>
+    </div>
+  </div>
+  <div class="bd-wrap">
+    <button class="back-btn" id="bd-back">← Tillbaka till alla brygder</button>
+    <div id="bd-pills" class="card-badges" style="margin-bottom:6px"></div>
+    <div id="bd-stats" class="bd-stats-grid"></div>
+    <div id="bd-recipe" class="brew-block" style="display:none">
+      <div class="brew-block-lbl">Recept</div>
+      <div class="brew-block-txt" id="bd-recipe-text"></div>
+    </div>
+    <div id="bd-notes" class="brew-block" style="display:none">
+      <div class="brew-block-lbl">Anteckningar</div>
+      <div class="brew-block-txt" id="bd-notes-text"></div>
+    </div>
+    <div class="bd-pnav">
+      <button class="pnav-btn" id="bd-prev">← Föregående</button>
+      <button class="del-btn" id="bd-del">Ta bort</button>
+      <button class="pnav-btn" id="bd-next">Nästa →</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTIK -->
+<div id="page-statistik" class="page">
+  <div class="pg-header">
+    <img src="bilder/bryggning.jpg" alt="Statistik">
+    <div class="pg-header-body">
+      <div class="pg-header-title">Statistik &amp; rekord</div>
+      <div class="pg-header-sub">Nackabryggarna i siffror</div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="charts-grid" style="margin-bottom:18px">
+      <div class="chart-card"><h3>Stilfördelning</h3><canvas id="ch-styles-stat"></canvas></div>
+      <div class="chart-card"><h3>ABV-fördelning</h3><canvas id="ch-abv-stat"></canvas></div>
+      <div class="chart-card"><h3>Brygder per år</h3><canvas id="ch-years-stat"></canvas></div>
+      <div class="chart-card"><h3>Humleranking — top 8</h3><canvas id="ch-hops-stat"></canvas></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><h3>Rekord &amp; fakta</h3><ul class="records-list" id="records"></ul></div>
+      <div class="chart-card"><h3>Humleranking</h3><ul class="toplist" id="hops-rank"></ul></div>
+    </div>
+  </div>
+</div>
+
+<!-- NY BRYGD -->
+<div id="page-ny" class="page">
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Logga ny brygd</h2>
+      <p>Fyll i vad du vet — allt utom namn är valfritt. ABV räknas ut automatiskt om du anger OG och FG.</p>
+      <form id="brew-form">
+        <div class="fg">
+          <div class="g full"><label>Namn *</label><input id="fn" required placeholder="t.ex. Sommarblond IPA"></div>
+          <div class="g"><label>Ölstil *</label>
+            <select id="fs" required>
+              <option value="">Välj stil…</option>
+              <option>IPA</option><option>DIPA / TIPA</option><option>Pale Ale</option><option>Session IPA</option>
+              <option>Lager</option><option>Pilsner</option><option>Weizen / Hefeweizen</option>
+              <option>Porter</option><option>Stout</option><option>Imperial Stout</option>
+              <option>Sour / Kettle Sour</option><option>Saison</option><option>Blonde Ale</option>
+              <option>Amber Ale</option><option>Brown Ale</option><option>Barleywine</option><option>Annan</option>
+            </select>
+          </div>
+          <div class="g"><label>Status</label>
+            <select id="fst">
+              <option>Planerad</option><option>Bryggdag</option><option>Jäsning</option>
+              <option>Lagring</option><option>Tappning</option><option selected>Klar</option>
+            </select>
+          </div>
+          <div class="g"><label>Datum</label><input type="date" id="fd"></div>
+          <div class="g"><label>Volym (liter)</label><input type="number" id="fv" min="1" max="999" step=".5" placeholder="20"></div>
+          <div class="g"><label>OG</label><input type="number" id="fog" step=".001" min="1" max="1.2" placeholder="1.050"></div>
+          <div class="g"><label>FG</label><input type="number" id="ffg" step=".001" min="1" max="1.2" placeholder="1.010"></div>
+          <div class="g"><label>ABV % (auto)</label><input type="number" id="fabv" step=".1" min="0" max="30" placeholder="5.0"></div>
+          <div class="g"><label>IBU</label><input type="number" id="fibu" min="0" max="200" placeholder="40"></div>
+          <div class="g"><label>SRM-färg 1–40 <span id="srm-prev"></span></label><input type="number" id="fsrm" min="1" max="40" step="1" placeholder="8"></div>
+          <div class="g full"><label>Recept / ingredienser</label><textarea id="frec" placeholder="Malt, humle, jäst…"></textarea></div>
+          <div class="g full"><label>Anteckningar</label><textarea id="fnot" placeholder="Hur gick det? Vad ska ändras nästa gång?"></textarea></div>
+        </div>
+        <button type="submit" class="btn">Spara brygd</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- OM OSS -->
+<div id="page-om" class="page">
+  <div class="wrap">
+    <div class="om-hero">
+      <img src="bilder/segelbat.jpg" alt="Nackabryggarna">
+      <div class="om-hero-text">
+        <div class="om-title">Nackabryggarna</div>
+        <div class="om-sub">Ljuflig Ölbrygg · Sedan 2019</div>
+      </div>
+    </div>
+    <div class="om-sec">
+      <h2>Vår historia</h2>
+      <div class="story">Vi är <strong>Lennart, Henrik och Magnus</strong> — tre kompisar från Nacka med ett gemensamt brinnande intresse för hantverksöl. Det började 2019 som ett experiment i ett kök med slangar på golvet, och har sedan dess vuxit till över <strong>56 brygder</strong> av allt från lätta IPA:er till tunga Imperial Stouts. Varje batch är ett nytt äventyr: nya humlesorter att utforska, nya mältkombinationer att prova — och viktigast av allt — nya minnen att skapa ihop. Under det hedervärda varumärket <strong>Ljuflig Ölbrygg</strong> strävar vi efter en sak: öl som smakar precis så bra som det luktar i bryggeriet.</div>
+    </div>
+    <div class="om-sec">
+      <h2>I bryggeriets tecken</h2>
+      <div class="photo-duo">
+        <img src="bilder/bryggning.jpg" alt="Bryggdag">
+        <img src="bilder/flaskor.jpg" alt="Ljuflig Ölbrygg på flaska">
+      </div>
+    </div>
+    <div class="om-sec">
+      <h2>Bryggarna</h2>
+      <div class="brewers">
+        <div class="brewer"><div class="brewer-icon">🌿</div><h3>Lennart</h3><div class="role">Expert på humle</div><p>Inte nöjd förrän humlet sitter perfekt. Lennart vet exakt vilken sort som ger rätt beska och arom.</p></div>
+        <div class="brewer"><img src="bilder/henrik.jpg" alt="Henrik" class="brewer-photo"><h3>Henrik</h3><div class="role">Expert på promille &amp; procenten</div><p>Inga kompromisser när det gäller ABV. Henrik räknar, mäter och ser till att varje brygd landar rätt.</p></div>
+        <div class="brewer"><div class="brewer-icon">📏</div><h3>Magnus</h3><div class="role">Expert på volym</div><p>Magnus tänker stort. Logistiken och volymerna är i trygga händer.</p></div>
+      </div>
+    </div>
+    <div class="om-sec">
+      <h2>Så brygger vi öl</h2>
+      <p style="color:var(--muted);line-height:1.85;font-size:.9rem;margin-bottom:20px">Hantverksöl är en kombination av vetenskap och hantverk. Mältat korn löses upp i varmt vatten, den söta vörten kokas med humle, kyls och tillsätts jäst. Sedan lagras, tappas och avsmakes — gärna med gott sällskap.</p>
+      <div class="steps">
+        <div class="step"><div class="icon">🌾</div><div class="num">Steg 1</div><h4>Mäskning</h4><p>Malt + 65–68°C vatten. Enzymer bryter ner stärkelse.</p></div>
+        <div class="step"><div class="icon">🪣</div><div class="num">Steg 2</div><h4>Lakning</h4><p>Söt vört silas av. Sköljvatten spolas igenom.</p></div>
+        <div class="step"><div class="icon">🔥</div><div class="num">Steg 3</div><h4>Kokning</h4><p>Vörten kokar 60–90 min med humle.</p></div>
+        <div class="step"><div class="icon">❄️</div><div class="num">Steg 4</div><h4>Kylning</h4><p>Snabbt ned till jäsningstemperatur.</p></div>
+        <div class="step"><div class="icon">🧫</div><div class="num">Steg 5</div><h4>Jäsning</h4><p>Jäst omvandlar socker till alkohol.</p></div>
+        <div class="step"><div class="icon">🍾</div><div class="num">Steg 6</div><h4>Tappning</h4><p>Lagring, tappning och kolsyrning.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>window.__test="BODY_OK";</script>
+</body></html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nackabryggarna</title>
+<script src="chart.min.js" defer></script>
+<script src="app.js" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0d08;--surface:#1c1810;--s2:#272010;--border:#3d3018;
+  --gold:#d4922a;--gold2:#a06018;--cream:#f2e4c4;--muted:#7a6840;--green:#4caf50;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--cream);min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(15,13,8,.95);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0;padding:0 1rem}
+.nav-logo{padding:.75rem 1rem .75rem 0;margin-right:auto}
+.nav-logo-main{font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.03em}
+.nav-logo-sub{font-size:.65rem;color:var(--muted);display:block;margin-top:1px}
+.nav-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:.75rem .7rem;
+  font-size:.8rem;font-weight:500;transition:color .15s;white-space:nowrap}
+.nav-btn:hover,.nav-btn.active{color:var(--cream)}
+.nav-btn.active{border-bottom:2px solid var(--gold)}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* HERO */
+.hero{position:relative;height:360px;overflow:hidden;display:flex;align-items:flex-end}
+.hero-bg{position:absolute;left:0;top:0;width:62%;height:100%;
+  background:url('bilder/bryggning.jpg') no-repeat;background-size:cover;background-position:-15% 35%;opacity:.9;
+  mask-image:linear-gradient(to right,black 82%,rgba(0,0,0,.2) 96%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to right,black 82%,rgba(0,0,0,.2) 96%,transparent 100%)}
+.hero-portrait{position:absolute;right:0;top:0;width:52%;height:100%;
+  background:url('bilder/henrik.jpg') no-repeat;background-size:75% auto;background-position:90% 22%;opacity:.88;
+  mask-image:linear-gradient(to left,black 38%,rgba(0,0,0,.25) 58%,rgba(0,0,0,.05) 78%,transparent 100%);
+  -webkit-mask-image:linear-gradient(to left,black 38%,rgba(0,0,0,.25) 58%,rgba(0,0,0,.05) 78%,transparent 100%)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,13,8,1) 0%,rgba(15,13,8,.55) 55%,transparent 100%)}
+.hero-text{position:relative;padding:2rem 1.5rem;max-width:900px;margin:0 auto;width:100%}
+.hero-title{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;font-family:'Playfair Display',serif;color:var(--cream);line-height:1.1}
+.hero-title span{color:var(--gold)}
+.hero-sub{color:var(--muted);margin-top:.5rem;font-size:.95rem}
+.hero-cta{margin-top:1rem;display:inline-block;background:var(--gold);color:#0f0d08;
+  padding:.55rem 1.3rem;border-radius:6px;border:none;cursor:pointer;font-weight:700;
+  font-size:.9rem;transition:background .15s}
+.hero-cta:hover{background:var(--gold2);color:var(--cream)}
+
+/* STATS ROW */
+.stats-row{display:flex;gap:1px;background:var(--border);border-top:1px solid var(--border)}
+.stat-box{flex:1;background:var(--surface);padding:1rem .75rem;text-align:center;min-width:0}
+.stat-box .n{font-size:1.4rem;font-weight:800;color:var(--gold)}
+.stat-box .l{font-size:.7rem;color:var(--muted);margin-top:.15rem}
+
+/* SECTION */
+.section{max-width:960px;margin:0 auto;padding:2rem 1rem}
+.sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1rem}
+.sec-title{font-size:1.1rem;font-weight:700;color:var(--cream)}
+.sec-meta{font-size:.75rem;color:var(--muted)}
+.sec-link{font-size:.75rem;color:var(--gold);cursor:pointer;background:none;border:none}
+.sec-link:hover{text-decoration:underline}
+
+/* BREW GRID */
+.brew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem}
+.brew-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:transform .15s,border-color .15s;overflow:hidden;display:flex}
+.brew-card:hover{transform:translateY(-2px);border-color:var(--gold)}
+.card-accent{width:4px;flex-shrink:0}
+.card-body{padding:.75rem;flex:1;min-width:0}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.card-name{font-weight:700;font-size:.95rem;color:var(--cream)}
+.card-num{font-size:.7rem;color:var(--muted);white-space:nowrap;margin-top:.1rem}
+.card-badges{display:flex;flex-wrap:wrap;gap:.3rem;margin:.4rem 0}
+.badge{font-size:.65rem;padding:.2rem .45rem;border-radius:4px;font-weight:600}
+.b-style{background:var(--s2);color:var(--gold)}
+.b-abv{background:rgba(212,146,42,.15);color:var(--gold)}
+.b-date{background:rgba(122,104,64,.2);color:var(--muted)}
+.card-recipe{font-size:.72rem;color:var(--muted);line-height:1.4;margin-top:.3rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* PHOTO STRIP */
+.photo-strip{display:flex;gap:.5rem;overflow-x:auto;padding:1rem;scrollbar-width:none}
+.photo-strip::-webkit-scrollbar{display:none}
+.photo-strip img{height:160px;border-radius:6px;object-fit:cover;object-position:center top;flex-shrink:0;cursor:pointer;
+  border:2px solid transparent;transition:border-color .15s}
+.photo-strip img:hover{border-color:var(--gold)}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);
+  color:var(--cream);padding:.5rem .5rem .5rem 2rem;border-radius:6px;font-size:.85rem}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-wrap input:focus{outline:none;border-color:var(--gold)}
+.search-icon{position:absolute;left:.55rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem}
+select{background:var(--surface);border:1px solid var(--border);color:var(--cream);
+  padding:.5rem .75rem;border-radius:6px;font-size:.85rem;cursor:pointer}
+select:focus{outline:none;border-color:var(--gold)}
+.chips{display:flex;gap:.35rem;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  padding:.3rem .6rem;border-radius:20px;font-size:.72rem;cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--muted)}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#0f0d08;font-weight:700}
+
+/* BREW DETAIL */
+.brew-detail{max-width:740px;margin:0 auto;padding:1.5rem 1rem}
+.bd-nav{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.btn{background:var(--surface);border:1px solid var(--border);color:var(--cream);
+  padding:.45rem .9rem;border-radius:6px;cursor:pointer;font-size:.8rem;transition:all .15s}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn:disabled{opacity:.3;cursor:default}
+.btn-danger{border-color:#c0392b;color:#e74c3c}
+.btn-danger:hover{background:#c0392b;color:white}
+.bd-hero{position:relative;border-radius:10px;overflow:hidden;background:var(--surface);
+  border:1px solid var(--border);padding:1.5rem;margin-bottom:1rem}
+.bd-accent{position:absolute;left:0;top:0;bottom:0;width:6px}
+.bd-name{font-size:1.8rem;font-weight:800;color:var(--cream);margin-bottom:.3rem}
+.bd-sub{font-size:.85rem;color:var(--muted);margin-bottom:.75rem}
+.bd-pills{display:flex;flex-wrap:wrap;gap:.4rem}
+.stat-boxes{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+.stat-b{background:var(--surface);border:1px solid var(--border);border-radius:6px;
+  padding:.6rem .9rem;min-width:80px;text-align:center}
+.stat-b .k{font-size:.65rem;color:var(--muted);margin-bottom:.2rem}
+.stat-b .v{font-size:1rem;font-weight:700;color:var(--gold)}
+.bd-section{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+  padding:1rem;margin-bottom:.75rem}
+.bd-section h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.6rem}
+.bd-section pre{font-family:inherit;font-size:.85rem;line-height:1.65;white-space:pre-wrap;color:var(--cream)}
+
+/* CHARTS */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:600px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.chart-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.75rem}
+.chart-wrap{position:relative;height:200px}
+
+/* RECORDS */
+.records-list{list-style:none}
+.records-list li{display:flex;gap:.75rem;align-items:baseline;padding:.6rem 0;
+  border-bottom:1px solid var(--border);font-size:.85rem}
+.rec-key{color:var(--muted);min-width:140px;font-size:.75rem}
+
+/* FORM */
+.form-card{max-width:540px;margin:0 auto;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:1.5rem}
+.form-title{font-size:1.2rem;font-weight:700;margin-bottom:1.25rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.form-group{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.75rem}
+.form-group label{font-size:.75rem;color:var(--muted);font-weight:600}
+.form-group input,.form-group select,.form-group textarea{
+  background:var(--s2);border:1px solid var(--border);color:var(--cream);
+  padding:.5rem .65rem;border-radius:6px;font-size:.85rem;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  outline:none;border-color:var(--gold)}
+.form-group textarea{resize:vertical;min-height:80px}
+.srm-row{display:flex;gap:.5rem;align-items:center}
+.srm-row input{flex:1}
+#srm-prev{width:36px;height:36px;border-radius:4px;border:1px solid var(--border);flex-shrink:0}
+.btn-submit{width:100%;background:var(--gold);color:#0f0d08;border:none;padding:.7rem;
+  border-radius:6px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:.5rem}
+.btn-submit:hover{background:var(--gold2);color:var(--cream)}
+
+/* OM */
+.om-wrap{max-width:700px;margin:0 auto;padding:2rem 1rem}
+.om-hero{border-radius:10px;overflow:hidden;margin-bottom:1.5rem;height:220px}
+.om-hero img{width:100%;height:100%;object-fit:cover}
+.om-wrap h1{font-size:1.6rem;font-weight:800;margin-bottom:.75rem}
+.om-wrap p{color:var(--muted);line-height:1.7;margin-bottom:1rem;font-size:.9rem}
+.om-photos{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1.5rem}
+.om-photos img{border-radius:6px;width:100%;height:140px;object-fit:cover}
+
+/* HOPS LIST */
+.hops-list{list-style:none}
+.hops-list li{display:flex;align-items:center;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--border)}
+.tl-rank{width:20px;text-align:center;font-size:.7rem;color:var(--muted);font-weight:700}
+.tl-body{flex:1;min-width:0}
+.tl-row{display:flex;justify-content:space-between;margin-bottom:.25rem}
+.tl-name{font-size:.8rem;font-weight:600;color:var(--cream)}
+.tl-cnt{font-size:.72rem;color:var(--muted)}
+.tl-bar{height:4px;background:var(--s2);border-radius:2px}
+.tl-fill{height:100%;background:var(--gold);border-radius:2px}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty .ico{font-size:2.5rem;margin-bottom:.75rem}
+
+@media(max-width:480px){
+  .form-row{grid-template-columns:1fr}
+  .stats-row{flex-wrap:wrap}
+  .stat-box{min-width:50%}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <span class="nav-logo-main">🍺 Nackabryggarna</span>
+    <span class="nav-logo-sub">Ljuflig Ölbrygg sedan 2019</span>
+  </div>
+  <button class="nav-btn active" data-page="hem">Hem</button>
+  <button class="nav-btn" data-page="brygder">Brygder</button>
+  <button class="nav-btn" data-page="statistik">Statistik</button>
+  <button class="nav-btn" data-page="ny">Ny brygd</button>
+  <button class="nav-btn" data-page="om">Om</button>
+  <button class="nav-btn" id="btn-export" title="Exportera data">⬇ Export</button>
+  <label class="nav-btn" title="Importera data" style="cursor:pointer">⬆ Import<input type="file" id="import-file" accept=".json" style="display:none"></label>
+</nav>
+
+<!-- HEM -->
+<div id="page-hem" class="page active">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-portrait"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-text">
+      <div class="hero-title">Bryggt med <span>passion</span></div>
+      <div class="hero-sub">Nackabryggarna — hembryggd öl från ambulerande verksamhet i Älta, Värmdö och Tyresö</div>
+      <button class="hero-cta" id="hero-cta">Se alla brygder →</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="home-stats-row">
+    <div class="stat-box"><div class="n" id="hs-total">–</div><div class="l">Brygder totalt</div></div>
+    <div class="stat-box"><div class="n" id="hs-avg">–</div><div class="l">Snitt ABV</div></div>
+    <div class="stat-box"><div class="n" id="hs-vol">–</div><div class="l">Est. total volym</div></div>
+    <div class="stat-box"><div class="n" id="hs-hop">–</div><div class="l">Favorithumle</div></div>
+    <div class="stat-box"><div class="n" id="hs-year">–</div><div class="l">Rekordår</div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-title">Senaste brygder</span>
+      <button class="sec-link" id="hem-see-all">Se alla →</button>
+    </div>
+    <div class="brew-grid" id="home-grid"></div>
+  </div>
+
+  <div class="section" style="padding-top:0">
+    <div class="sec-head"><span class="sec-title">Bildgalleri</span></div>
+    <div class="photo-strip">
+      <img src="bilder/bryggning.jpg" alt="Magnus och Lennart" style="object-position:38% 32%">
+      <img src="bilder/henrik.jpg" alt="Henrik" style="object-position:center 15%">
+      <img src="bilder/segelbat.jpg" alt="Segelbåt" style="object-position:center 25%">
+      <img src="bilder/flaskor.jpg" alt="Flaskor" style="object-position:center center">
+    </div>
+  </div>
+</div>
+
+<!-- BRYGDER -->
+<div id="page-brygder" class="page">
+  <div class="section">
+    <div class="sec-head">
+      <span class="sec-title">Alla brygder</span>
+      <span class="sec-meta" id="brygder-meta"></span>
+    </div>
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="q" placeholder="Sök namn, humle, malt…">
+      </div>
+      <select id="sort">
+        <option value="new">Nyast först</option>
+        <option value="old">Äldst först</option>
+        <option value="name">Namn A–Ö</option>
+        <option value="abv-hi">Starkast</option>
+        <option value="abv-lo">Svagast</option>
+      </select>
+    </div>
+    <div class="chips" id="style-chips"></div>
+    <br>
+    <div class="brew-grid" id="brygder-grid"></div>
+    <div class="empty" id="brygder-empty" style="display:none">
+      <div class="ico">🔍</div><p>Inga träffar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BREW DETAIL -->
+<div id="page-brew" class="page">
+  <div class="brew-detail">
+    <div class="bd-nav">
+      <button class="btn" id="bd-back">← Tillbaka</button>
+      <button class="btn" id="bd-prev">‹ Föregående</button>
+      <button class="btn" id="bd-next">Nästa ›</button>
+      <button class="btn btn-danger" id="bd-del" style="margin-left:auto">Ta bort</button>
+    </div>
+    <div id="bd-img-wrap" style="display:none;margin-bottom:.75rem;border-radius:8px;overflow:hidden;max-height:260px">
+      <img id="bd-img" src="" alt="" style="width:100%;object-fit:cover;max-height:260px">
+    </div>
+    <div class="bd-hero">
+      <div class="bd-accent" id="bd-accent"></div>
+      <div class="bd-name" id="bd-name"></div>
+      <div class="bd-sub" id="bd-sub"></div>
+      <div class="bd-pills" id="bd-pills"></div>
+    </div>
+    <div class="stat-boxes" id="bd-stats"></div>
+    <div style="margin-bottom:.75rem">
+      <label class="btn" style="cursor:pointer">📷 Lägg till foto
+        <input type="file" id="bd-img-input" accept="image/*" style="display:none">
+      </label>
+      <button class="btn" id="bd-img-remove" style="display:none;margin-left:.4rem">🗑 Ta bort foto</button>
+    </div>
+    <div class="bd-section" id="bd-recipe" style="display:none">
+      <h3>Recept</h3>
+      <pre id="bd-recipe-text"></pre>
+    </div>
+    <div class="bd-section" id="bd-notes" style="display:none">
+      <h3>Anteckningar</h3>
+      <pre id="bd-notes-text"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTIK -->
+<div id="page-statistik" class="page">
+  <div class="section">
+    <div class="sec-head"><span class="sec-title">Statistik</span></div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Stilar</div>
+        <div class="chart-wrap"><canvas id="ch-styles"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">ABV-fördelning</div>
+        <div class="chart-wrap"><canvas id="ch-abv"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Brygder per år</div>
+        <div class="chart-wrap"><canvas id="ch-years"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Humle (topp 8)</div>
+        <div class="chart-wrap"><canvas id="ch-hops"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:1rem">
+      <div class="chart-title">ABV-trend per brygd</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="ch-trend"></canvas></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="chart-card">
+        <div class="chart-title">Rekord</div>
+        <ul class="records-list" id="records"></ul>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Humleranking</div>
+        <ul class="hops-list" id="hops-rank"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NY BRYGD -->
+<div id="page-ny" class="page">
+  <div class="section">
+    <div class="form-card">
+      <div class="form-title">🍺 Lägg till ny brygd</div>
+      <form id="brew-form">
+        <div class="form-group">
+          <label>Namn *</label>
+          <input type="text" id="fn" required placeholder="t.ex. Cascade IPA">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stil</label>
+            <select id="fs">
+              <option value="">– välj stil –</option>
+              <option>IPA</option><option>DIPA / TIPA</option><option>Pale Ale</option>
+              <option>Stout</option><option>Imperial Stout</option><option>Porter</option>
+              <option>Saison</option><option>Weizen / Hefeweizen</option>
+              <option>Lager</option><option>Pilsner</option>
+              <option>Sour / Kettle Sour</option><option>Annan</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="fst">
+              <option value="Pågående">Pågående</option>
+              <option value="Klar" selected>Klar</option>
+              <option value="Tömd">Tömd</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Datum</label>
+            <input type="date" id="fd">
+          </div>
+          <div class="form-group">
+            <label>Volym (L)</label>
+            <input type="number" id="fv" step="0.5" min="0" placeholder="20">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>OG</label>
+            <input type="number" id="fog" step="0.001" min="1" placeholder="1.050">
+          </div>
+          <div class="form-group">
+            <label>FG</label>
+            <input type="number" id="ffg" step="0.001" min="1" placeholder="1.010">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ABV %</label>
+            <input type="number" id="fabv" step="0.1" placeholder="5.3">
+          </div>
+          <div class="form-group">
+            <label>IBU</label>
+            <input type="number" id="fibu" step="1" placeholder="40">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>SRM (färg)</label>
+          <div class="srm-row">
+            <input type="number" id="fsrm" step="1" min="1" max="40" placeholder="8">
+            <div id="srm-prev"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Recept</label>
+          <textarea id="frec" placeholder="Malt: ...&#10;Humle: ...&#10;Jäst: ..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Anteckningar</label>
+          <textarea id="fnot" placeholder="Smak, utfall, nästa gång…"></textarea>
+        </div>
+        <button type="submit" class="btn-submit">Spara brygd</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- OM -->
+<div id="page-om" class="page">
+  <div class="om-wrap">
+    <div class="om-hero"><img src="bilder/segelbat.jpg" alt="Nackabryggarna"></div>
+    <h1>Om Nackabryggarna</h1>
+    <p>Nackabryggarna är ett hembryggarprojekt som sedan 2019 ambulerar i Värmdö, Tyresö och Älta. Här brygger vi öl med passion, nyfikenhet och lite för mycket humle.</p>
+    <p>Över 79 brygder senare har vi testat allt från klassiska IPA:er till saisoner, stouter, Porter, veteöl och experiment med honung och rökmalt. Inget stoppar oss!</p>
+    <div class="om-photos">
+      <img src="bilder/bryggning.jpg" alt="Bryggning">
+      <img src="bilder/flaskor.jpg" alt="Flaskor">
+      <img src="bilder/henrik.jpg" alt="Bryggaren Henrik">
+      <img src="bilder/segelbat.jpg" alt="Inspiration">
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

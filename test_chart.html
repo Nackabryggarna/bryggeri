@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="chart.min.js"></script>
+</head>
+<body>
+<script type="application/json" id="seed-data">[{"id":1,"name":"Test"}]</script>
+<script>
+window.__test = 'AFTER_CHART';
+window.__chart = typeof Chart;
+const data = JSON.parse(document.getElementById('seed-data').textContent);
+window.__count = data.length;
+</script>
+</body>
+</html>
